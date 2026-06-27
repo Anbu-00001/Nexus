@@ -7,11 +7,15 @@ class PersonaSwitcher extends StatelessWidget {
   final Persona value;
   final ValueChanged<Persona> onChanged;
   final bool compact;
+
+  /// Single-letter pills (T·E·M) for tight phone headers.
+  final bool mini;
   const PersonaSwitcher({
     super.key,
     required this.value,
     required this.onChanged,
     this.compact = false,
+    this.mini = false,
   });
 
   @override
@@ -33,14 +37,16 @@ class PersonaSwitcher extends StatelessWidget {
               duration: const Duration(milliseconds: 160),
               margin: const EdgeInsets.symmetric(horizontal: 2),
               padding: EdgeInsets.symmetric(
-                  horizontal: compact ? NexusSpace.x12 : NexusSpace.x12 + 2,
+                  horizontal: mini
+                      ? NexusSpace.x8
+                      : (compact ? NexusSpace.x12 : NexusSpace.x12 + 2),
                   vertical: compact ? NexusSpace.x8 - 1 : NexusSpace.x8 + 1),
               decoration: BoxDecoration(
                 color: selected ? NexusColors.cyan : Colors.transparent,
                 borderRadius: const BorderRadius.all(Radius.circular(7)),
               ),
               child: Text(
-                p.label,
+                mini ? p.label[0] : p.label,
                 style: NexusType.caption.copyWith(
                   fontSize: compact ? 11 : 12,
                   fontWeight: selected ? FontWeight.w600 : FontWeight.w500,

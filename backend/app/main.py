@@ -46,13 +46,16 @@ async def assertion(assertion_id: str):
 async def pid_vision(question: str = Form(...), image: UploadFile = File(...)):
     """Vision-native P&ID Q&A — locate a component on an engineering drawing."""
     img = await image.read()
+    # Coerce to a real image mime; some clients upload as octet-stream.
+    ctype = image.content_type or ""
+    mime = ctype if ctype.startswith("image/") else "image/png"
     prompt = (
         "You are reading a P&ID engineering drawing. Answer the question by "
         "naming the relevant tag/component and where it sits relative to other "
         f"components. Be concise.\n\nQuestion: {question}"
     )
     try:
-        answer = await vision(prompt, img, image.content_type or "image/png")
+        answer = await vision(prompt, img, mime)
         return {"answer": answer, "ok": True}
     except Exception as e:
         return {"answer": f"Vision unavailable ({type(e).__name__}).", "ok": False}

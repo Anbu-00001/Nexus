@@ -45,14 +45,32 @@ class _IngestionScreenState extends State<IngestionScreen> {
       children: [
         const ScreenHeader(subtitle: 'Ingest engineering knowledge'),
         Expanded(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(child: _LeftPanel()),
-              Container(width: 1, color: NexusColors.borderSubtle),
-              Expanded(child: _GraphPanel(reveal: _reveal, nodes: nodes, edges: edges)),
-            ],
-          ),
+          child: LayoutBuilder(builder: (context, c) {
+            final narrow = c.maxWidth < 820;
+            if (narrow) {
+              return SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _LeftPanel(),
+                    Container(height: 1, color: NexusColors.borderSubtle),
+                    SizedBox(
+                      height: 440,
+                      child: _GraphPanel(reveal: _reveal, nodes: nodes, edges: edges),
+                    ),
+                  ],
+                ),
+              );
+            }
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: SingleChildScrollView(child: _LeftPanel())),
+                Container(width: 1, color: NexusColors.borderSubtle),
+                Expanded(child: _GraphPanel(reveal: _reveal, nodes: nodes, edges: edges)),
+              ],
+            );
+          }),
         ),
       ],
     );
@@ -62,7 +80,7 @@ class _IngestionScreenState extends State<IngestionScreen> {
 class _LeftPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return Padding(
       padding: const EdgeInsets.all(NexusSpace.x24 + 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

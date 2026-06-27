@@ -35,6 +35,11 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   google_fonts: ^8.1.0
+  http: ^1.6.0
+  sherpa_onnx: ^1.13.3
+  record: ^6.2.1
+  permission_handler: ^12.0.3
+  path_provider: ^2.1.6
 
 dev_dependencies:
   flutter_test:
@@ -57,6 +62,12 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  # Bundled IBM Plex fonts. google_fonts loads these from the bundle instead of
+  # fetching at runtime, so the app renders correctly fully offline.
+  assets:
+    - google_fonts/
+    - assets/models/asr/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

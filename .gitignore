@@ -60,3 +60,6 @@ backend/.venv/
 __pycache__/
 *.pyc
 *.pyo
+
+# On-device ASR model (bundled at build, fetched via scripts/fetch_model.sh)
+assets/models/

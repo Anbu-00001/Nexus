@@ -19,16 +19,37 @@ class GraphScreen extends StatelessWidget {
       children: [
         const ScreenHeader(subtitle: 'Graph · Unit 3'),
         Expanded(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(width: 236, child: _LegendColumn()),
-              Container(width: 1, color: NexusColors.borderSubtle),
-              const Expanded(child: _Canvas()),
-              Container(width: 1, color: NexusColors.borderSubtle),
-              const SizedBox(width: 304, child: _Inspector()),
-            ],
-          ),
+          child: LayoutBuilder(builder: (context, c) {
+            final narrow = c.maxWidth < 820;
+            if (narrow) {
+              return SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 360, child: _Canvas()),
+                    Container(height: 1, color: NexusColors.borderSubtle),
+                    const _Inspector(),
+                    Container(height: 1, color: NexusColors.borderSubtle),
+                    const _LegendColumn(),
+                  ],
+                ),
+              );
+            }
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(
+                    width: 236,
+                    child: SingleChildScrollView(child: _LegendColumn())),
+                Container(width: 1, color: NexusColors.borderSubtle),
+                const Expanded(child: _Canvas()),
+                Container(width: 1, color: NexusColors.borderSubtle),
+                const SizedBox(
+                    width: 304,
+                    child: SingleChildScrollView(child: _Inspector())),
+              ],
+            );
+          }),
         ),
       ],
     );
@@ -39,7 +60,7 @@ class _LegendColumn extends StatelessWidget {
   const _LegendColumn();
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return Padding(
       padding: const EdgeInsets.all(NexusSpace.x20 + 2),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -143,7 +164,7 @@ class _Inspector extends StatelessWidget {
   const _Inspector();
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return Padding(
       padding: const EdgeInsets.all(NexusSpace.x20 + 2),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

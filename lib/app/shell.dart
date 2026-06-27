@@ -20,7 +20,7 @@ class NexusShell extends StatefulWidget {
 
 class _NexusShellState extends State<NexusShell> {
   Persona _persona = Persona.engineer;
-  NexusScreen _screen = NexusScreen.ingest;
+  NexusScreen _screen = NexusScreen.query;
 
   // Each persona has a "home" screen it jumps to when selected.
   void _setPersona(Persona p) {
@@ -184,6 +184,17 @@ class _PersonaDot extends StatelessWidget {
   }
 }
 
+/// Short labels for the phone tab bar (some titles are too long to fit 7-up).
+String _navLabel(NexusScreen s) => switch (s) {
+      NexusScreen.ingest => 'Ingest',
+      NexusScreen.graph => 'Graph',
+      NexusScreen.query => 'Query',
+      NexusScreen.pid => 'P&ID',
+      NexusScreen.decay => 'Decay',
+      NexusScreen.voice => 'Capture',
+      NexusScreen.dashboard => 'Stats',
+    };
+
 class _BottomNav extends StatelessWidget {
   final NexusScreen screen;
   final ValueChanged<NexusScreen> onSelect;
@@ -195,17 +206,66 @@ class _BottomNav extends StatelessWidget {
         color: NexusColors.bgSunken,
         border: Border(top: BorderSide(color: NexusColors.borderSubtle)),
       ),
-      padding: const EdgeInsets.symmetric(vertical: NexusSpace.x8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: NexusScreen.values.map((s) {
-          final sel = s == screen;
-          return GestureDetector(
-            onTap: () => onSelect(s),
-            child: Icon(s.icon,
-                size: 22, color: sel ? NexusColors.cyan : NexusColors.textTertiary),
-          );
-        }).toList(),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 58,
+          child: Row(
+            children: NexusScreen.values
+                .map((s) => Expanded(
+                      child: _NavItem(
+                        screen: s,
+                        selected: s == screen,
+                        onTap: () => onSelect(s),
+                      ),
+                    ))
+                .toList(),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  final NexusScreen screen;
+  final bool selected;
+  final VoidCallback onTap;
+  const _NavItem({required this.screen, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected ? NexusColors.cyan : NexusColors.textTertiary;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Selected indicator bar across the top of the tab.
+          Container(
+            height: 2,
+            width: 22,
+            margin: const EdgeInsets.only(bottom: 7),
+            decoration: BoxDecoration(
+              color: selected ? NexusColors.cyan : Colors.transparent,
+              borderRadius: const BorderRadius.all(Radius.circular(2)),
+              boxShadow: selected
+                  ? NexusShadows.halo(NexusColors.cyan, blur: 8, opacity: 1)
+                  : null,
+            ),
+          ),
+          Icon(screen.icon, size: 21, color: color),
+          const SizedBox(height: 3),
+          Text(
+            _navLabel(screen),
+            maxLines: 1,
+            overflow: TextOverflow.clip,
+            style: NexusType.monoSmall(
+                    color: color, weight: selected ? FontWeight.w700 : FontWeight.w500)
+                .copyWith(fontSize: 9, letterSpacing: 0.2),
+          ),
+        ],
       ),
     );
   }
@@ -245,14 +305,20 @@ class ScreenHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scope = NexusScope.of(context);
-    return NexusAppBar(
-      subtitle: subtitle,
-      center: center,
-      trailing: PersonaSwitcher(
-        value: scope.persona,
-        onChanged: scope.setPersona,
-        compact: true,
-      ),
-    );
+    return LayoutBuilder(builder: (context, c) {
+      // On a phone the logo + full-word persona toggle won't both fit, so drop
+      // the (body-redundant) subtitle and collapse the toggle to T·E·M pills.
+      final narrow = c.maxWidth < 600;
+      return NexusAppBar(
+        subtitle: narrow ? null : subtitle,
+        center: center,
+        trailing: PersonaSwitcher(
+          value: scope.persona,
+          onChanged: scope.setPersona,
+          compact: true,
+          mini: narrow,
+        ),
+      );
+    });
   }
 }

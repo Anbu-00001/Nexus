@@ -1,10 +1,63 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import '../services/api_client.dart';
 import '../theme/tokens.dart';
 import '../widgets/nexus_app_bar.dart';
 import '../widgets/primitives.dart';
+import '../widgets/query_bar.dart';
 
-class PidScreen extends StatelessWidget {
+class PidScreen extends StatefulWidget {
   const PidScreen({super.key});
+  @override
+  State<PidScreen> createState() => _PidScreenState();
+}
+
+class _PidScreenState extends State<PidScreen> {
+  final _api = const ApiClient();
+  final _controller = TextEditingController(
+      text: 'Where is the pressure relief on the suction header?');
+  final _drawingKey = GlobalKey();
+  String? _liveAnswer;
+  bool _live = false;
+  bool _loading = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  /// Rasterize the rendered drawing to PNG bytes for the vision endpoint.
+  Future<Uint8List?> _captureDrawing() async {
+    try {
+      final b = _drawingKey.currentContext?.findRenderObject()
+          as RenderRepaintBoundary?;
+      if (b == null) return null;
+      final image = await b.toImage(pixelRatio: 1.5);
+      final data = await image.toByteData(format: ui.ImageByteFormat.png);
+      return data?.buffer.asUint8List();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _ask() async {
+    final q = _controller.text.trim();
+    if (q.isEmpty || _loading) return;
+    setState(() => _loading = true);
+    final img = await _captureDrawing();
+    final ans = img == null ? null : await _api.visionPid(q, img);
+    if (!mounted) return;
+    setState(() {
+      _loading = false;
+      if (ans != null) {
+        _live = true;
+        _liveAnswer = ans;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,14 +66,44 @@ class PidScreen extends StatelessWidget {
       children: [
         const NexusAppBar(subtitle: 'P&ID-204 · Unit 3 · sheet 3'),
         Expanded(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(width: 366, child: _QaPanel()),
-              Container(width: 1, color: NexusColors.borderSubtle),
-              const Expanded(child: _Drawing()),
-            ],
-          ),
+          child: LayoutBuilder(builder: (context, c) {
+            final narrow = c.maxWidth < 820;
+            final qa = _QaPanel(
+              controller: _controller,
+              liveAnswer: _liveAnswer,
+              live: _live,
+              loading: _loading,
+              onAsk: _ask,
+            );
+            if (narrow) {
+              return SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(
+                      height: 300,
+                      child: RepaintBoundary(
+                          key: _drawingKey, child: const _Drawing()),
+                    ),
+                    Container(height: 1, color: NexusColors.borderSubtle),
+                    qa,
+                  ],
+                ),
+              );
+            }
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                    width: 366,
+                    child: SingleChildScrollView(child: qa)),
+                Container(width: 1, color: NexusColors.borderSubtle),
+                Expanded(
+                  child: RepaintBoundary(key: _drawingKey, child: const _Drawing()),
+                ),
+              ],
+            );
+          }),
         ),
       ],
     );
@@ -28,25 +111,31 @@ class PidScreen extends StatelessWidget {
 }
 
 class _QaPanel extends StatelessWidget {
-  const _QaPanel();
+  final TextEditingController controller;
+  final String? liveAnswer;
+  final bool live;
+  final bool loading;
+  final VoidCallback onAsk;
+  const _QaPanel({
+    required this.controller,
+    required this.liveAnswer,
+    required this.live,
+    required this.loading,
+    required this.onAsk,
+  });
+
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return Padding(
       padding: const EdgeInsets.all(NexusSpace.x24 + 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          NexusCard(
-            background: NexusColors.surface1,
-            borderColor: NexusColors.borderStrong,
-            child: Row(children: [
-              Text('YOU', style: NexusType.monoSmall().copyWith(fontSize: 10)),
-              const SizedBox(width: NexusSpace.x12 - 1),
-              Expanded(
-                child: Text('Where is the pressure relief on the suction header?',
-                    style: NexusType.bodySm.copyWith(color: NexusColors.textPrimary)),
-              ),
-            ]),
+          QueryBar(
+            controller: controller,
+            hint: 'Ask about the drawing…',
+            glow: true,
+            onAsk: onAsk,
           ),
           const SizedBox(height: NexusSpace.x16 + 2),
           NexusCard(
@@ -67,28 +156,37 @@ class _QaPanel extends StatelessWidget {
                   ),
                   const SizedBox(width: NexusSpace.x8),
                   Flexible(
-                    child: Text('NEXUS · LOCATED ON DRAWING',
+                    child: Text(
+                        loading
+                            ? 'NEXUS · ANALYZING DRAWING…'
+                            : (live
+                                ? 'NEXUS · LIVE FROM DRAWING'
+                                : 'NEXUS · LOCATED ON DRAWING'),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: NexusType.monoSmall(color: NexusColors.cyan).copyWith(fontSize: 10, letterSpacing: 1.2)),
                   ),
                 ]),
                 const SizedBox(height: NexusSpace.x8),
-                RichText(
-                  text: TextSpan(
-                    style: NexusType.body.copyWith(height: 22 / 14, fontSize: 14),
-                    children: [
-                      const TextSpan(text: 'The relief is '),
-                      TextSpan(
-                          text: 'Relief Valve RV-103',
-                          style: NexusType.body.copyWith(
-                              color: NexusColors.cyan, fontWeight: FontWeight.w600, fontSize: 14)),
-                      const TextSpan(
-                          text: ', tied to the P-101 suction header upstream of valve '
-                              'V-22. Set pressure 8.5 barg.'),
-                    ],
-                  ),
-                ),
+                liveAnswer == null
+                    ? RichText(
+                        text: TextSpan(
+                          style: NexusType.body.copyWith(height: 22 / 14, fontSize: 14),
+                          children: [
+                            const TextSpan(text: 'The relief is '),
+                            TextSpan(
+                                text: 'Relief Valve RV-103',
+                                style: NexusType.body.copyWith(
+                                    color: NexusColors.cyan, fontWeight: FontWeight.w600, fontSize: 14)),
+                            const TextSpan(
+                                text: ', tied to the P-101 suction header upstream of valve '
+                                    'V-22. Set pressure 8.5 barg.'),
+                          ],
+                        ),
+                      )
+                    : Text(liveAnswer!,
+                        style: NexusType.body.copyWith(
+                            height: 22 / 14, fontSize: 14, color: NexusColors.textPrimary)),
               ],
             ),
           ),

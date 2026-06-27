@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/models.dart';
+import '../services/speech_service.dart';
 import '../theme/tokens.dart';
 import '../widgets/graph_node.dart';
 import '../widgets/primitives.dart';
@@ -12,7 +14,46 @@ class VoiceScreen extends StatefulWidget {
 }
 
 class _VoiceScreenState extends State<VoiceScreen> {
-  bool _recording = true;
+  final _speech = SpeechService();
+  StreamSubscription<String>? _sub;
+  bool _recording = false;
+  bool _useLive = false; // true once real on-device ASR text flows
+  String _live = '';
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    _speech.dispose();
+    super.dispose();
+  }
+
+  Future<void> _toggle() async {
+    if (_recording) {
+      await _sub?.cancel();
+      _sub = null;
+      await _speech.stop();
+      if (mounted) setState(() => _recording = false);
+      return;
+    }
+    final stream = await _speech.start();
+    if (!mounted) return;
+    if (stream == null) {
+      // Mic/model unavailable → scripted demo mode so the UI still animates.
+      setState(() {
+        _recording = true;
+        _useLive = false;
+      });
+      return;
+    }
+    setState(() {
+      _recording = true;
+      _useLive = true;
+      _live = '';
+    });
+    _sub = stream.listen((t) {
+      if (mounted) setState(() => _live = t);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,8 +97,10 @@ class _VoiceScreenState extends State<VoiceScreen> {
                 ]),
               ),
               const SizedBox(width: NexusSpace.x8),
-              Text('● REC 12:04',
-                  style: NexusType.monoSmall(color: NexusColors.stale).copyWith(fontSize: 11)),
+              Text(_recording ? '● REC' : 'READY',
+                  style: NexusType.monoSmall(
+                          color: _recording ? NexusColors.stale : NexusColors.textTertiary)
+                      .copyWith(fontSize: 11)),
             ],
           ),
         ),
@@ -110,8 +153,8 @@ class _VoiceScreenState extends State<VoiceScreen> {
                 ),
                 child: Row(children: [
                   TransportButton(
-                    icon: _recording ? Icons.pause : Icons.play_arrow,
-                    onTap: () => setState(() => _recording = !_recording),
+                    icon: _recording ? Icons.pause : Icons.mic,
+                    onTap: _toggle,
                   ),
                   const SizedBox(width: NexusSpace.x12 + 2),
                   Expanded(child: Waveform(active: _recording)),
@@ -122,7 +165,7 @@ class _VoiceScreenState extends State<VoiceScreen> {
               Text('LIVE TRANSCRIPT',
                   style: NexusType.monoSmall().copyWith(letterSpacing: 1.4, fontSize: 11)),
               const SizedBox(height: NexusSpace.x12 - 2),
-              _Transcript(),
+              _Transcript(live: _useLive ? _live : null),
               const SizedBox(height: NexusSpace.x16 + 2),
               // becoming a node
               Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
@@ -174,8 +217,23 @@ class _VoiceScreenState extends State<VoiceScreen> {
 }
 
 class _Transcript extends StatelessWidget {
+  final String? live;
+  const _Transcript({this.live});
   @override
   Widget build(BuildContext context) {
+    if (live != null && live!.isNotEmpty) {
+      return RichText(
+        text: TextSpan(
+          style: NexusType.body.copyWith(
+              color: NexusColors.textPrimary, height: 22 / 14, fontSize: 14),
+          children: [
+            TextSpan(text: '"$live'),
+            const WidgetSpan(
+                alignment: PlaceholderAlignment.middle, child: _Cursor()),
+          ],
+        ),
+      );
+    }
     return RichText(
       text: TextSpan(
         style: NexusType.body.copyWith(color: NexusColors.textSecondary, height: 22 / 14, fontSize: 14),
