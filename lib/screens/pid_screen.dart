@@ -66,8 +66,12 @@ class _QaPanel extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: NexusSpace.x8),
-                  Text('NEXUS · LOCATED ON DRAWING',
-                      style: NexusType.monoSmall(color: NexusColors.cyan).copyWith(fontSize: 10, letterSpacing: 1.2)),
+                  Flexible(
+                    child: Text('NEXUS · LOCATED ON DRAWING',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: NexusType.monoSmall(color: NexusColors.cyan).copyWith(fontSize: 10, letterSpacing: 1.2)),
+                  ),
                 ]),
                 const SizedBox(height: NexusSpace.x8),
                 RichText(
@@ -152,8 +156,13 @@ class _Drawing extends StatefulWidget {
 
 class _DrawingState extends State<_Drawing> with SingleTickerProviderStateMixin {
   late final AnimationController _pulse = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 1800))
-    ..repeat(reverse: true);
+      vsync: this, duration: const Duration(milliseconds: 1800));
+
+  @override
+  void initState() {
+    super.initState();
+    _pulse.repeat(reverse: true);
+  }
 
   @override
   void dispose() {

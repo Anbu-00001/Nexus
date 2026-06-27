@@ -163,7 +163,13 @@ class _RightRail extends StatelessWidget {
   Widget _freshRow(String label, String value, Color c) => Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: NexusType.bodySm.copyWith(color: NexusColors.textSecondary)),
+          Flexible(
+            child: Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: NexusType.bodySm.copyWith(color: NexusColors.textSecondary)),
+          ),
+          const SizedBox(width: NexusSpace.x8),
           Text(value, style: NexusType.monoSmall(color: c, weight: FontWeight.w600).copyWith(fontSize: 12)),
         ],
       );

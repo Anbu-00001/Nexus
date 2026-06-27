@@ -94,7 +94,12 @@ class NodeLegendRow extends StatelessWidget {
       children: [
         GraphNodeChip(type: type, label: '', size: 18),
         const SizedBox(width: NexusSpace.x12 - 1),
-        Text(type.label, style: NexusType.bodySm.copyWith(color: NexusColors.textPrimary)),
+        Flexible(
+          child: Text(type.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: NexusType.bodySm.copyWith(color: NexusColors.textPrimary)),
+        ),
       ],
     );
   }

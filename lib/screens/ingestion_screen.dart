@@ -146,13 +146,23 @@ class _GraphPanel extends StatelessWidget {
                     style: NexusType.body.copyWith(fontWeight: FontWeight.w600)),
               ),
               const SizedBox(width: NexusSpace.x8),
-              Row(mainAxisSize: MainAxisSize.min, children: [
-                Text('$nodes nodes',
-                    style: NexusType.monoSmall(color: NexusColors.cyan)),
-                Text('  ·  ', style: NexusType.monoSmall()),
-                Text('$edges edges',
-                    style: NexusType.monoSmall(color: NexusColors.causal)),
-              ]),
+              Flexible(
+                child: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Flexible(
+                    child: Text('$nodes nodes',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: NexusType.monoSmall(color: NexusColors.cyan)),
+                  ),
+                  Text('  ·  ', style: NexusType.monoSmall()),
+                  Flexible(
+                    child: Text('$edges edges',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: NexusType.monoSmall(color: NexusColors.causal)),
+                  ),
+                ]),
+              ),
             ],
           ),
           const SizedBox(height: NexusSpace.x16),

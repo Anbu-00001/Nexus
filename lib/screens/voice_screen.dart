@@ -34,21 +34,28 @@ class _VoiceScreenState extends State<VoiceScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: NexusColors.causal,
-                    borderRadius: const BorderRadius.all(Radius.circular(3)),
-                    boxShadow: NexusShadows.halo(NexusColors.causal, blur: 8, opacity: 1),
+              Expanded(
+                child: Row(children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: NexusColors.causal,
+                      borderRadius: const BorderRadius.all(Radius.circular(3)),
+                      boxShadow: NexusShadows.halo(NexusColors.causal, blur: 8, opacity: 1),
+                    ),
                   ),
-                ),
-                const SizedBox(width: NexusSpace.x8 + 1),
-                Text('KNOWLEDGE CAPTURE',
-                    style: NexusType.monoSmall(color: NexusColors.textPrimary, weight: FontWeight.w700)
-                        .copyWith(fontSize: 12, letterSpacing: 1.6)),
-              ]),
+                  const SizedBox(width: NexusSpace.x8 + 1),
+                  Flexible(
+                    child: Text('KNOWLEDGE CAPTURE',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: NexusType.monoSmall(color: NexusColors.textPrimary, weight: FontWeight.w700)
+                            .copyWith(fontSize: 12, letterSpacing: 1.6)),
+                  ),
+                ]),
+              ),
+              const SizedBox(width: NexusSpace.x8),
               Text('● REC 12:04',
                   style: NexusType.monoSmall(color: NexusColors.stale).copyWith(fontSize: 11)),
             ],
@@ -71,11 +78,19 @@ class _VoiceScreenState extends State<VoiceScreen> {
                     Row(children: [
                       const StatusDot(NexusColors.cyan, size: 7),
                       const SizedBox(width: NexusSpace.x8),
-                      Text('NEXUS ASKS',
-                          style: NexusType.monoSmall(color: NexusColors.cyan).copyWith(fontSize: 10, letterSpacing: 1.0)),
+                      Flexible(
+                        child: Text('NEXUS ASKS',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: NexusType.monoSmall(color: NexusColors.cyan).copyWith(fontSize: 10, letterSpacing: 1.0)),
+                      ),
                       const SizedBox(width: NexusSpace.x8),
-                      Text('▶ speaking',
-                          style: NexusType.monoSmall(color: NexusColors.textTertiary).copyWith(fontSize: 10)),
+                      Flexible(
+                        child: Text('▶ speaking',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: NexusType.monoSmall(color: NexusColors.textTertiary).copyWith(fontSize: 10)),
+                      ),
                     ]),
                     const SizedBox(height: NexusSpace.x8 - 1),
                     Text('"When P-101 starts cavitating, what do you listen for before the gauges move?"',
@@ -198,7 +213,13 @@ class _Cursor extends StatefulWidget {
 
 class _CursorState extends State<_Cursor> with SingleTickerProviderStateMixin {
   late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 1000))..repeat(reverse: true);
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 1000));
+  @override
+  void initState() {
+    super.initState();
+    _c.repeat(reverse: true);
+  }
+
   @override
   void dispose() {
     _c.dispose();

@@ -89,4 +89,99 @@ NEXUS uses a dark-theme visual language engineered for high-visibility industria
     ```bash
     flutter run
     ```
-    *Note: Supports Flutter Web, Android, iOS, and Desktop platforms.*
+    *Note: Supports Flutter Web, Android, iOS, and Desktop platforms. The app
+    renders fully on a built-in demo dataset, so it runs with or without the
+    backend below.*
+
+---
+
+## 🧠 AI Engine (FastAPI backend)
+
+The intelligence behind NEXUS lives in a small, provider-agnostic FastAPI
+service under [`backend/`](backend/). The Flutter app ships with a matching
+demo dataset and can call this service for live answers; if the service is
+offline it transparently falls back to the bundled data, so a demo never breaks.
+
+### What it does
+*   **Causal–temporal reasoning** (`app/causal.py`): reconstructs the recurring
+    pattern in the maintenance log — an upstream **V-22** anomaly that reliably
+    precedes a downstream **P-101** failure at a consistent lag — counts its
+    recurrences, and projects the next occurrence (probability + time window).
+    A large language model then narrates the chain in plain engineering
+    language with source citations.
+*   **Temporal knowledge decay** (`app/decay.py`): confidence in an assertion
+    erodes linearly per month at a domain-specific rate (safety-critical decays
+    fast, equipment specs slowly). A procedure last confirmed 14 months ago at
+    4.2 %/month surfaces as **41 % — STALE**, exactly as the UI shows.
+*   **Vision-native P&ID Q&A** (`app/main.py` → `/vision/pid`): sends the
+    drawing image + question to a multimodal model to locate a component.
+*   **Provider abstraction** (`app/llm.py`): Google **Gemini** (`gemini-2.5-flash`,
+    multimodal) as primary, **Groq** (Llama 3.3 70B) as a fast text fallback —
+    a Gemini failure (e.g. free-tier quota) auto-falls-back to Groq so text
+    answers keep flowing.
+
+> **Honest framing (and a deliberate design choice):** with only a handful of
+> failure events there is no statistically valid *causal discovery* to perform.
+> NEXUS instead does **temporal pattern reconstruction + LLM narration** — which
+> is robust on sparse industrial data and exactly what a reliability engineer
+> reasons through. We do not overclaim a DoWhy/PC statistical-discovery result.
+
+### Endpoints
+| Method | Path | Purpose |
+| :-- | :-- | :-- |
+| `GET`  | `/health` | service + provider status |
+| `POST` | `/query` | causal chain + failure prediction, LLM-narrated |
+| `GET`  | `/assertion/{id}` | temporal-decay confidence for an assertion |
+| `GET`  | `/graph` | reconstructed causal-chain summary |
+| `POST` | `/vision/pid` | locate a component on a P&ID image (multipart) |
+
+### Setup & run
+```bash
+cd backend
+python3 -m venv .venv && . .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8077      # http://127.0.0.1:8077/docs
+```
+
+### API keys (`.env` at the repo root — git-ignored)
+Copy `.env.example` to `.env` and fill in:
+```
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=AIza...      # https://aistudio.google.com/apikey (durable AIza key)
+GEMINI_MODEL=gemini-2.5-flash
+GROQ_API_KEY=gsk_...        # https://console.groq.com  (fallback)
+```
+
+### Tests
+```bash
+cd backend && PYTHONPATH=$PWD .venv/bin/python -m pytest -q
+```
+Endpoints are tested in-process with FastAPI's `TestClient` (no running server
+needed).
+
+---
+
+## 🎬 3-Minute Demo Script
+1. **Ingest** — drop a P&ID, a maintenance PDF, and a scanned form; the
+   knowledge graph builds live and a causal chain begins forming.
+2. **Query** — ask *"Why did Pump P-101 fail in August 2023?"* NEXUS traces
+   **V-22 → cavitation → vibration → P-101 bearing → failure** across three
+   documents, then predicts: *"P-101 failure probability in the next 3–5 weeks:
+   **74 %**"* — from a recurring historical pattern.
+3. **Decay & Capture** — a field tech opens restart procedure **SOP-P-101-M**:
+   *"Confidence 41 % — last confirmed 14 months ago. STALE."* Then a retiring
+   engineer's spoken insight becomes a permanent **TacitKnowledge** graph node.
+
+---
+
+## 🗂️ Repository Layout
+```
+lib/                 Flutter app
+  theme/             design tokens + theme (1:1 with the design system)
+  widgets/           reusable components (badges, prediction alert, waveform…)
+  graph/             custom-painted knowledge graph + glowing causal path
+  screens/           the 7 screens
+  app/               shell, navigation, persona scope
+  data/              demo dataset (mirrors the backend)
+backend/             FastAPI AI engine (causal, decay, vision, LLM providers)
+```

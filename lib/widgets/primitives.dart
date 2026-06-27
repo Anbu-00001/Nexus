@@ -109,9 +109,14 @@ class NexusButton extends StatelessWidget {
                   Icon(icon, size: 16, color: fg),
                   const SizedBox(width: NexusSpace.x8),
                 ],
-                Text(label,
-                    style: NexusType.body.copyWith(
-                        color: fg, fontWeight: FontWeight.w600)),
+                Flexible(
+                  child: Text(label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: NexusType.body.copyWith(
+                          color: fg, fontWeight: FontWeight.w600)),
+                ),
               ],
             ),
           ),
@@ -147,9 +152,16 @@ class StatusDot extends StatefulWidget {
 
 class _StatusDotState extends State<StatusDot>
     with SingleTickerProviderStateMixin {
+  // Created in initState (never lazily during dispose), so tearing the widget
+  // down before it ever builds can't trigger an unsafe TickerMode lookup.
   late final AnimationController _c = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 1400))
-    ..repeat(reverse: true);
+      vsync: this, duration: const Duration(milliseconds: 1400));
+
+  @override
+  void initState() {
+    super.initState();
+    _c.repeat(reverse: true);
+  }
 
   @override
   void dispose() {

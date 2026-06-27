@@ -31,13 +31,15 @@ class DashboardScreen extends StatelessWidget {
                       _ComplianceCard(),
                     ]);
                   }
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(flex: 16, child: _DowntimeChart()),
-                      const SizedBox(width: NexusSpace.x16),
-                      Expanded(flex: 10, child: _ComplianceCard()),
-                    ],
+                  return IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(flex: 16, child: _DowntimeChart()),
+                        const SizedBox(width: NexusSpace.x16),
+                        Expanded(flex: 10, child: _ComplianceCard()),
+                      ],
+                    ),
                   );
                 }),
                 const SizedBox(height: NexusSpace.x16),

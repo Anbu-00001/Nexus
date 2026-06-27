@@ -53,3 +53,10 @@ backend/.env
 # Tool config
 .claude/
 
+
+# Python backend
+backend/.venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo

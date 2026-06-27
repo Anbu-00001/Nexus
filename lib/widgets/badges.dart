@@ -105,6 +105,9 @@ class SourceChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      // Cap the intrinsic width so a long label ellipsizes (e.g. inside a Wrap
+      // that measures children at unbounded width) instead of overflowing.
+      constraints: const BoxConstraints(maxWidth: 280),
       padding: const EdgeInsets.symmetric(
           horizontal: NexusSpace.x12 - 1, vertical: NexusSpace.x8),
       decoration: BoxDecoration(
@@ -119,7 +122,12 @@ class SourceChip extends StatelessWidget {
               style: NexusType.monoSmall(color: source.color, weight: FontWeight.w600)
                   .copyWith(fontSize: 10)),
           const SizedBox(width: NexusSpace.x8),
-          Text(source.label, style: NexusType.bodySm.copyWith(color: NexusColors.textPrimary)),
+          Flexible(
+            child: Text(source.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: NexusType.bodySm.copyWith(color: NexusColors.textPrimary)),
+          ),
         ],
       ),
     );

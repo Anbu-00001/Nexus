@@ -58,15 +58,22 @@ class NexusAppBar extends StatelessWidget {
           const NexusLogo(),
           if (subtitle != null) ...[
             const SizedBox(width: NexusSpace.x16 + 2),
-            Text(subtitle!,
-                style: NexusType.bodySm.copyWith(color: NexusColors.textTertiary)),
+            Flexible(
+              child: Text(subtitle!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: NexusType.bodySm.copyWith(color: NexusColors.textTertiary)),
+            ),
           ],
           if (center != null) ...[
             const SizedBox(width: NexusSpace.x16),
             Expanded(child: center!),
           ] else
             const Spacer(),
-          ?trailing,
+          if (trailing != null) ...[
+            const SizedBox(width: NexusSpace.x12),
+            trailing!,
+          ],
         ],
       ),
     );

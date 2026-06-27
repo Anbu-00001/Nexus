@@ -58,9 +58,13 @@ class DecayScreen extends StatelessWidget {
                 child: Row(children: [
                   const StatusDot(NexusColors.stale, size: 9, pulse: true),
                   const SizedBox(width: NexusSpace.x8 + 1),
-                  Text('STALE — verify before use',
-                      style: NexusType.bodySm.copyWith(
-                          color: NexusColors.stale, fontWeight: FontWeight.w600)),
+                  Flexible(
+                    child: Text('STALE — verify before use',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: NexusType.bodySm.copyWith(
+                            color: NexusColors.stale, fontWeight: FontWeight.w600)),
+                  ),
                 ]),
               ),
               const SizedBox(height: NexusSpace.x12 + 2),
@@ -74,10 +78,20 @@ class DecayScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('PROCEDURE',
-                            style: NexusType.monoSmall().copyWith(letterSpacing: 1.0, fontSize: 11)),
-                        Text(sop.id,
-                            style: NexusType.monoSmall(color: NexusColors.stale).copyWith(fontSize: 11)),
+                        Flexible(
+                          child: Text('PROCEDURE',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: NexusType.monoSmall().copyWith(letterSpacing: 1.0, fontSize: 11)),
+                        ),
+                        const SizedBox(width: NexusSpace.x8),
+                        Flexible(
+                          child: Text(sop.id,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.end,
+                              style: NexusType.monoSmall(color: NexusColors.stale).copyWith(fontSize: 11)),
+                        ),
                       ],
                     ),
                     const SizedBox(height: NexusSpace.x12 - 2),
