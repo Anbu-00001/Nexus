@@ -63,3 +63,6 @@ __pycache__/
 
 # On-device ASR model (bundled at build, fetched via scripts/fetch_model.sh)
 assets/models/
+
+# Built APKs (large; share out-of-band)
+*.apk

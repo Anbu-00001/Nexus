@@ -58,13 +58,16 @@ class _KpiRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, c) {
       final cols = c.maxWidth < 720 ? 2 : 4;
+      // Narrow cards are ~150px wide; 1.75 is too short for the value + delta
+      // (clips by ~14px), so give phone-width cards more height.
+      final ratio = cols == 2 ? 1.4 : 1.75;
       return GridView.count(
         crossAxisCount: cols,
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         crossAxisSpacing: NexusSpace.x16,
         mainAxisSpacing: NexusSpace.x16,
-        childAspectRatio: 1.75,
+        childAspectRatio: ratio,
         children: Demo.kpis.map((k) => _KpiCard(k)).toList(),
       );
     });

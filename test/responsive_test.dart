@@ -75,14 +75,16 @@ void main() {
   });
 
   // Desktop screens are exercised across a wide range of widths. The live shell
-  // (NexusShell) switches to the full-bleed mobile layout below 860px, so the
-  // desktop screens only ever render at >=600px here — well below their natural
-  // size, which is what makes the worst-case-font hardening meaningful.
+  // (NexusShell) keeps rendering these same screens in its phone layout all the
+  // way down to a ~360px handset, so they must survive true phone widths too —
+  // that is where fixed-width panels and tight grids actually clip.
   const desktopSizes = <Size>[
     Size(1440, 900),
     Size(1024, 768),
     Size(760, 800),
     Size(600, 800),
+    Size(411, 891), // Pixel-class phone
+    Size(360, 806), // OPPO CPH2591 / small Android handset
   ];
 
   // Mobile screens render at a fixed phone viewport.
